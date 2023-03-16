@@ -10,6 +10,7 @@ import numpy as np
 
 from sklearn.ensemble import GradientBoostingRegressor
 
+from util.generator import generate_bw_hist 
 
 def smape(y_true: np.array, y_pred: np.array) -> np.array:
     return 200*np.mean(np.abs(y_pred-y_true)/(np.abs(y_true) + np.abs(y_pred)))
@@ -33,8 +34,7 @@ def prepare_data(raw_data: pd.DataFrame, bw_cols: list[str]) -> pd.DataFrame:
     
     data["compressed size [byte]"] = data["compressed size [byte]"]/data["countValuesSmall"]*8
 
-    data.insert(13, "minBucket", 
-                data.loc[:,bw_cols].ne(0).idxmax(axis=1).str.replace("bwHist_", "").astype(float).values)
+    data.insert(13, "minBucket", data.loc[:,bw_cols].ne(0).idxmax(axis=1).str.replace("bwHist_", "").astype(float).values)
     data.insert(14, "maxBucket", data["bitwidth"].values)
     data.insert(15, "Avg", data[bw_cols].dot(range(1,65)).values)
     data.insert(16, "numBuckets", data.loc[:,bw_cols].ne(0).sum(axis=1).astype(float).values)
@@ -112,18 +112,20 @@ def use_selection_strategy(pool: defaultdict, data_test: pd.DataFrame, objective
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description='A local learned selection strategy for lightweight integer compression')
+    parser.add_argument("-g", "--generator", type=str, help='Which generator to be used. Can be laola, outliers or tidal. Default: laola', default='laola')
     args = parser.parse_args(argv)
-
-    #print(args)
 
     data_train = {}
     data_test = {}
 
+    # generate bw histograms in measurements_hist
+    generate_bw_hist(args.generator, 64, 100)
+
     # discover all algorithms
     # measurement data contains the features, objectives and bit width histograms
-    for f_name in os.listdir("measurements/"):
-        data = pd.read_csv("measurements/{}".format(f_name), sep="\t")
+    for f_name in os.listdir("measurements/{}/".format(args.generator)):
+        data = pd.read_csv("measurements/{}/{}".format(args.generator, f_name), sep="\t")
         if "train" in f_name:
             print("Found {}.".format(f_name))
             data_train[data["format"].iloc[0]] = data
@@ -153,7 +155,8 @@ def main(argv: list[str] | None = None) -> int:
     # need full data to find best algorithm for each settingIdx
     data_test_full = pd.concat(data_test.values(), ignore_index = True)
     for objective in obj_columns:
-        use_selection_strategy(models, data_test_full, objective, features)
+        results = use_selection_strategy(models, data_test_full, objective, features)
+        results.to_csv("results/{}_{}.csv".format(objective, args.generator), index=False)
     
     return 0
 
