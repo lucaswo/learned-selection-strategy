@@ -10,7 +10,8 @@ import numpy as np
 
 from sklearn.ensemble import GradientBoostingRegressor
 
-from util.generator import generate_bw_hist 
+from util.generator import generate_bw_hist
+from util.features import prepare_data
 
 def smape(y_true: np.array, y_pred: np.array) -> np.array:
     return 200*np.mean(np.abs(y_pred-y_true)/(np.abs(y_true) + np.abs(y_pred)))
@@ -26,27 +27,6 @@ def mae(y_true: np.array, y_pred: np.array) -> np.array:
 
 def rel_err(y_true: np.array, y_pred: np.array) -> np.array:
     return (y_pred - y_true).abs() / y_true
-
-def prepare_data(raw_data: pd.DataFrame, bw_cols: list[str]) -> pd.DataFrame:
-    data = raw_data.groupby(["settingIdx", "format", "settingGroup"], as_index=False).mean()
-
-    data.loc[:,bw_cols] = data.loc[:,bw_cols].div(data["countValuesSmall"], axis=0)
-    
-    data["compressed size [byte]"] = data["compressed size [byte]"]/data["countValuesSmall"]*8
-
-    data.insert(13, "minBucket", data.loc[:,bw_cols].ne(0).idxmax(axis=1).str.replace("bwHist_", "").astype(float).values)
-    data.insert(14, "maxBucket", data["bitwidth"].values)
-    data.insert(15, "Avg", data[bw_cols].dot(range(1,65)).values)
-    data.insert(16, "numBuckets", data.loc[:,bw_cols].ne(0).sum(axis=1).astype(float).values)
-    data.insert(17, "Std", data[bw_cols].std(axis=1).values)
-    data.insert(18, "Skew", data[bw_cols].skew(axis=1).values)
-    data.insert(19, "Kurt", data[bw_cols].kurtosis(axis=1).values)
-    
-    offset = (data.columns == bw_cols[0]).argmax() - 1
-    data["Min"] = data.values[range(len(data)),data["minBucket"].astype(int)+offset]
-    data["Max"] = data.values[range(len(data)),data["maxBucket"].astype(int)+offset]
-    
-    return data
 
 def train_model(data_train: pd.DataFrame, data_test: pd.DataFrame, algorithm: str, objective: str, features: list[int], est_range: list[int], d_range: list[int]) -> tuple[GradientBoostingRegressor, pd.DataFrame, pd.DataFrame]:
     best_err = np.inf
@@ -113,7 +93,7 @@ def use_selection_strategy(pool: defaultdict, data_test: pd.DataFrame, objective
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description='A local learned selection strategy for lightweight integer compression')
-    parser.add_argument("-g", "--generator", type=str, help='Which generator to be used. Can be laola, outliers or tidal. Default: laola', default='laola')
+    parser.add_argument("-g", "--generator", type=str, help='Which generator to be used. Can be laola, outlier, or tidal. Default: laola', default='laola')
     args = parser.parse_args(argv)
 
     data_train = {}
@@ -126,6 +106,9 @@ def main(argv: list[str] | None = None) -> int:
     # measurement data contains the features, objectives and bit width histograms
     for f_name in os.listdir("measurements/{}/".format(args.generator)):
         data = pd.read_csv("measurements/{}/{}".format(args.generator, f_name), sep="\t")
+        # feature generation
+        if "Avg" not in data.columns.values:
+            data = prepare_data(data, ["bwHist_{}".format(x) for x in range(1,65)])
         if "train" in f_name:
             print("Found {}.".format(f_name))
             data_train[data["format"].iloc[0]] = data
@@ -146,7 +129,7 @@ def main(argv: list[str] | None = None) -> int:
 
     # train model for each algorithm
     for algo in data_train.keys():
-        assert algo in data_test.keys(), "{algo} not in test data"
+        assert algo in data_test.keys(), "{} not in test data".format(algo)
         # train model for each algorithm x objective
         for objective in obj_columns:
             models[algo][objective], errors[algo][objective], timings[algo][objective] = train_model(data_train[algo], data_test[algo], algo, objective, features, range(10,60,10), range(3,7))

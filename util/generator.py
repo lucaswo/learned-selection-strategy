@@ -2,15 +2,15 @@ import numpy as np
 from itertools import product
 
 # N buckets
-# k max elements per bucket
+# k max elements per bucket (usually 100 for percent)
 # delta diff for each step
 def generate_bw_hist(generator: str, N: int = 64, k: int = 100, bit: bool = False) -> None:
     if generator == "laola":
         syn_data = gen_laola(N, k)
-    elif generator == "outliers":
-        syn_data = gen_outliers(N, k)
+    elif generator == "outlier":
+        syn_data = gen_outlier(N, k)
     elif generator == "tidal":
-        syn_data = gen_outliers(N, k)
+        syn_data = gen_tidal(N, k)
     else:
         raise Exception("Generator not implemented.")
 
@@ -42,7 +42,7 @@ def gen_laola(N: int, k: int, delta: int = 2) -> np.array:
     print("Generated {} histograms.".format(n_samples))
     return dists
 
-def gen_outliers(N: int, k: int, delta: int = 2) -> np.array:
+def gen_outlier(N: int, k: int, delta: int = 2) -> np.array:
     dists = np.zeros(((N-1)*(k//delta)+1, N), dtype=int)
 
     i = 0
