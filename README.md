@@ -39,10 +39,10 @@ options:
 Please cite our paper if you use this code in your own work:
 
 ```
-@inproccedings{woltmann2023learned, 
+@inproceedings{woltmann2023learned, 
   doi = {10.48786/edbt.2023.47}, 
   url = {https://openproceedings.org/2023/conf/edbt/3-paper-48.pdf}, 
-  author = {Woltmann, Lucas and Damme, Patrick and Hartmann, Claudio and Habich, Dirk and Lehner,Wolfgang}, 
+  author = {Woltmann, Lucas and Damme, Patrick and Hartmann, Claudio and Habich, Dirk and Lehner, Wolfgang}, 
   language = {en}, 
   title = {{Learned Selection Strategy for Lightweight Integer Compression Algorithms}}, 
   publisher = {OpenProceedings.org}, 
