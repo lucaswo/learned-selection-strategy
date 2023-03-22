@@ -1,6 +1,6 @@
 # Learned Selection Strategy for Integer Compression
 
-A local Selection Strategy for Integer Compression algorithms as presented in [1](#references).
+A local Selection Strategy for Integer Compression algorithms as presented in [[1]](#references).
 
 ### Install
 Get all required packages with (make sure that you are using Python 3.10 or above):
@@ -32,7 +32,7 @@ options:
 
 ## References
 
-[1] [Woltmann et al., Learned Selection Strategy for Integer Compression, EDBT 2023]()
+[1] [Woltmann et al., Learned Selection Strategy for Integer Compression, EDBT 2023](https://dx.doi.org/10.48786/edbt.2023.47)
 
 ## Cite
 
@@ -40,12 +40,11 @@ Please cite our paper if you use this code in your own work:
 
 ```
 @inproccedings{woltmann2023learned, 
-  doi = {}, 
-  url = {}, 
-  author = {}, 
-  keywords = {}, 
+  doi = {10.48786/edbt.2023.47}, 
+  url = {https://openproceedings.org/2023/conf/edbt/3-paper-48.pdf}, 
+  author = {Woltmann, Lucas and Damme, Patrick and Hartmann, Claudio and Habich, Dirk and Lehner,Wolfgang}, 
   language = {en}, 
-  title = {{}}, 
+  title = {{Learned Selection Strategy for Lightweight Integer Compression Algorithms}}, 
   publisher = {OpenProceedings.org}, 
   year = {2023}, 
   booktitle = {Proceedings of the 26th International Conference on Extending Database Technology}, 
