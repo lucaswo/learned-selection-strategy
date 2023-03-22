@@ -53,10 +53,10 @@ def train_model(data_train: pd.DataFrame, data_test: pd.DataFrame, algorithm: st
                                 "mse": mse(y_test, y_pred).values,
                                 "mae": mae(y_test, y_pred).values,
                                 "sape": sape(y_test, y_pred).values})
-            print("""Trained model {}x{} for {} ({}) in {:.4f}s. Predicted in {:.4f}s ({:.4f}ms per sample)
+            print("""Trained model {}x{} for {} ({}) in {:.4f}s. Predicted in {:.4f}ms ({:.4f}µs per sample)
                 Errors: MSE={:.4f}, MAE={:.4f}, SMAPE={:.2f}%""". \
-                format(est, d, algorithm, objective, train_time, pred_time, 
-                        pred_time/len(data_test)*1000, eor["mse"].mean(), eor["mae"].mean(), 
+                format(est, d, algorithm, objective, train_time, pred_time*1000, 
+                        pred_time/len(data_test)*1000000, eor["mse"].mean(), eor["mae"].mean(), 
                         eor["sape"].mean()))
 
             if eor["sape"].mean() < best_err:
@@ -94,6 +94,7 @@ def use_selection_strategy(pool: defaultdict, data_test: pd.DataFrame, objective
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description='A local learned selection strategy for lightweight integer compression')
     parser.add_argument("-g", "--generator", type=str, help='Which generator to be used. Can be laola, outlier, or tidal. Default: laola', default='laola')
+    parser.add_argument("-d", "--datagen", action='store_true', help='If set, only the data generation is executed.')
     args = parser.parse_args(argv)
 
     data_train = {}
@@ -101,6 +102,9 @@ def main(argv: list[str] | None = None) -> int:
 
     # generate bw histograms in measurements_hist
     generate_bw_hist(args.generator, 64, 100)
+
+    if args.datagen:
+        return 0
 
     # discover all algorithms
     # measurement data contains the features, objectives and bit width histograms

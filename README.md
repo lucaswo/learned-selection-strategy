@@ -19,7 +19,7 @@ Get all options by calling `python3 learned-selection-strategy.py -h`
 
 ```
 >>> python3 learned-selection-strategy.py -h
-usage: learned-selection-strategy.py [-h] [-g GENERATOR]
+usage: learned-selection-strategy.py [-h] [-g GENERATOR] [-d]
 
 A local learned selection strategy for lightweight integer compression
 
@@ -27,6 +27,7 @@ options:
   -h, --help            show this help message and exit
   -g GENERATOR, --generator GENERATOR
                         Which generator to be used. Can be laola, outlier, or tidal. Default: laola
+  -d, --datagen         If set, only the data generation is executed.
 ```
 
 ## References
